@@ -1,0 +1,52 @@
+buildscript {
+    ext {
+        springBootVersion = '1.2.7.RELEASE'
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath('io.spring.gradle:dependency-management-plugin:0.5.2.RELEASE')
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+apply plugin: 'io.spring.dependency-management'
+
+jar {
+    baseName = 'judge-server'
+    version = '0.0.1-SNAPSHOT'
+}
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter-redis')
+    compile('org.springframework.boot:spring-boot-starter-web')
+    compile('org.algohub.engine:judge-engine:1.0.0-SNAPSHOT')
+    testCompile('org.springframework.boot:spring-boot-starter-test')
+    testCompile('com.jayway.jsonpath:json-path-assert:2.0.0')
+}
+
+
+eclipse {
+    classpath {
+        containers.remove('org.eclipse.jdt.launching.JRE_CONTAINER')
+        containers 'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8'
+    }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.7'
+}

@@ -10,6 +10,7 @@ import org.algohub.engine.type.LanguageType;
 import org.algohub.engine.util.ObjectMapperInstance;
 import org.algohub.rest.pojo.Answer;
 import org.algohub.rest.pojo.SubmissionId;
+import org.algohub.rest.service.RedisService;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,7 +62,7 @@ public class JudgeServerApplicationTests {
   private HttpMessageConverter mappingJackson2HttpMessageConverter;
 
   @Autowired
-  private RedisDao redisDao;
+  private RedisService redisService;
 
   @Autowired
   private WebApplicationContext webApplicationContext;
@@ -91,7 +92,7 @@ public class JudgeServerApplicationTests {
 
   @After
   public void clear() {
-    redisDao.clear();
+    redisService.clear();
   }
 
   @Test public void judgeTest() {
@@ -212,7 +213,7 @@ public class JudgeServerApplicationTests {
         final String jsonStr = new String(Files.readAllBytes(fileEntry.toPath()),
             StandardCharsets.UTF_8);
         final Question question = ObjectMapperInstance.INSTANCE.readValue(jsonStr, Question.class);
-        redisDao.addQuestion(question.getId(), jsonStr);
+        redisService.addQuestion(question.getId(), jsonStr);
       }
     }
   }

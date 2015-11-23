@@ -7,7 +7,6 @@ import org.algohub.engine.judge.StatusCode;
 import org.algohub.engine.pojo.JudgeResult;
 import org.algohub.engine.pojo.Question;
 import org.algohub.engine.util.ObjectMapperInstance;
-import org.algohub.rest.pojo.QuestionsMap;
 import org.algohub.rest.pojo.Submission;
 import org.algohub.rest.pojo.SubmissionResultMap;
 import org.algohub.rest.pojo.TaskQueueList;
@@ -17,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -28,7 +28,6 @@ import org.springframework.data.redis.support.collections.RedisMap;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class RedisServiceImpl implements RedisService {
@@ -47,8 +46,6 @@ public class RedisServiceImpl implements RedisService {
 
   @Autowired
   private SubmissionResultMap submissionResultMap;
-  @Autowired
-  private QuestionsMap questionsMap;
 
   @Autowired
   private TaskQueueList taskQueue;
@@ -63,13 +60,6 @@ public class RedisServiceImpl implements RedisService {
     final RedisMap<String, String> redisMap = new DefaultRedisMap<>(
         GLOBAL_KEY_PREIFIX + SUBMISSION_REDULT_MAP_KEY, redisTemplate);
     return new SubmissionResultMap(redisMap);
-  }
-
-  @Bean
-  QuestionsMap createQuestionMap(StringRedisTemplate redisTemplate) {
-    final RedisMap<String, String> redisMap = new DefaultRedisMap<>(
-        GLOBAL_KEY_PREIFIX + QUESTION_MAP_KEY, redisTemplate);
-    return new QuestionsMap(redisMap);
   }
 
   @Bean TaskQueueList createTaskQueue(StringRedisTemplate redisTemplate) {
@@ -104,11 +94,13 @@ public class RedisServiceImpl implements RedisService {
   }
 
   public void addQuestion(final String id, final String json) {
-    questionsMap.getMap().put(id, json);
+    final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
+    valueOps.set("question:" + id, json);
   }
 
   public Question getQuestion(String id) {
-    final String jsonStr = questionsMap.getMap().get(id);
+    final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
+    final String jsonStr = valueOps.get("question:" + id);
     if (jsonStr == null) {
       return null;
     }

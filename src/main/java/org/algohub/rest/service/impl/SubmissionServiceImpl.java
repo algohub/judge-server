@@ -5,18 +5,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import org.algohub.engine.JudgeEngine;
 import org.algohub.engine.judge.StatusCode;
 import org.algohub.engine.pojo.JudgeResult;
-import org.algohub.engine.pojo.Question;
 import org.algohub.engine.util.ObjectMapperInstance;
 import org.algohub.rest.pojo.Submission;
 import org.algohub.rest.pojo.SubmissionResultMap;
 import org.algohub.rest.pojo.TaskQueueList;
-import org.algohub.rest.service.RedisService;
+import org.algohub.rest.service.QuestionService;
+import org.algohub.rest.service.SubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Service
-public class RedisServiceImpl implements RedisService {
+public class SubmissionServiceImpl implements SubmissionService {
   private static final String GLOBAL_KEY_PREIFIX = "judge:";
   private static final String MAX_SUBMISSION_ID_KEY = "max_submission_id";
   private static final String NEW_TASK_NOTIFICATION_KEY = "task_queue";
@@ -93,25 +93,6 @@ public class RedisServiceImpl implements RedisService {
     return maxSubmissionId.incrementAndGet();
   }
 
-  public void addQuestion(final String id, final String json) {
-    final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-    valueOps.set("question:" + id, json);
-  }
-
-  public Question getQuestion(String id) {
-    final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-    final String jsonStr = valueOps.get("question:" + id);
-    if (jsonStr == null) {
-      return null;
-    }
-
-    try {
-      return ObjectMapperInstance.INSTANCE.readValue(jsonStr, Question.class);
-    } catch (IOException e) {
-      return null;
-    }
-  }
-
   public void pushTask(final Submission submission) {
     try {
       final String jsonStr = ObjectMapperInstance.INSTANCE.writeValueAsString(submission);
@@ -154,23 +135,24 @@ public class RedisServiceImpl implements RedisService {
   }
 
   static class Receiver {
-    @Autowired
-    @Qualifier("judgeEngine")
-    private JudgeEngine judgeEngine;
+    private final JudgeEngine judgeEngine = new JudgeEngine();
 
     @Autowired
-    private RedisService redisService;
+    private SubmissionService submissionService;
+
+    @Autowired
+    private QuestionService questionService;
 
     public void receiveMessage(String message) {
       try {
-        final String jsonStr = redisService.popTask();
+        final String jsonStr = submissionService.popTask();
         if (jsonStr != null) {
           final Submission submission = ObjectMapperInstance.INSTANCE.readValue(jsonStr,
               Submission.class);
-          redisService.setSubmissionResult(submission.getId(), new JudgeResult(StatusCode.RUNNING));
-          final JudgeResult judgeResult = judgeEngine.judge(redisService.getQuestion(
+          submissionService.setSubmissionResult(submission.getId(), new JudgeResult(StatusCode.RUNNING));
+          final JudgeResult judgeResult = judgeEngine.judge(questionService.getQuestionById(
               submission.getQuestionId()), submission.getCode(), submission.getLanguage());
-          redisService.setSubmissionResult(submission.getId(), judgeResult);
+          submissionService.setSubmissionResult(submission.getId(), judgeResult);
         }
       } catch (IOException e) {
         e.printStackTrace();

@@ -10,7 +10,8 @@ import org.algohub.engine.type.LanguageType;
 import org.algohub.engine.util.ObjectMapperInstance;
 import org.algohub.rest.pojo.Answer;
 import org.algohub.rest.pojo.SubmissionId;
-import org.algohub.rest.service.RedisService;
+import org.algohub.rest.service.QuestionService;
+import org.algohub.rest.service.SubmissionService;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,12 +37,10 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -62,7 +61,9 @@ public class JudgeServerApplicationTests {
   private HttpMessageConverter mappingJackson2HttpMessageConverter;
 
   @Autowired
-  private RedisService redisService;
+  private QuestionService questionService;
+  @Autowired
+  private SubmissionService submissionService;
 
   @Autowired
   private WebApplicationContext webApplicationContext;
@@ -92,7 +93,7 @@ public class JudgeServerApplicationTests {
 
   @After
   public void clear() {
-    redisService.clear();
+    submissionService.clear();
   }
 
   @Test public void judgeTest() {
@@ -154,9 +155,8 @@ public class JudgeServerApplicationTests {
   private void judgeOne(final String id, final String userCode,
       LanguageType languageType) {
     try {
-      String tmp = this.json(new Answer(id, languageType, userCode));
       String response = mockMvc.perform(
-          post("/question/judge").content(this.json(new Answer(id, languageType, userCode)))
+          post("/judge").content(this.json(new Answer(id, languageType, userCode)))
               .contentType(contentType)).andReturn().getResponse().getContentAsString();
       final SubmissionId submissionId = ObjectMapperInstance.INSTANCE.readValue(response,
           SubmissionId.class);
@@ -182,9 +182,9 @@ public class JudgeServerApplicationTests {
       LanguageType languageType) {
     try {
       String response = mockMvc.perform(
-          post("/question/judge/" + languageType.toValue() + '/' + id)
+          post("/judge/" + languageType.toValue() + '/' + id)
               .content(userCode)
-              .contentType(contentType)).andReturn().getResponse().getContentAsString();
+              .contentType(contentTypeText)).andReturn().getResponse().getContentAsString();
       final SubmissionId submissionId = ObjectMapperInstance.INSTANCE.readValue(response,
           SubmissionId.class);
 
@@ -213,7 +213,7 @@ public class JudgeServerApplicationTests {
         final String jsonStr = new String(Files.readAllBytes(fileEntry.toPath()),
             StandardCharsets.UTF_8);
         final Question question = ObjectMapperInstance.INSTANCE.readValue(jsonStr, Question.class);
-        redisService.addQuestion(question.getId(), jsonStr);
+        questionService.addQuestion(question.getId(), jsonStr);
       }
     }
   }

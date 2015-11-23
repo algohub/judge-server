@@ -5,9 +5,7 @@ import org.algohub.engine.pojo.Question;
 import org.algohub.rest.pojo.Submission;
 
 
-public interface RedisService {
-  void addQuestion(final String id, final String json); // Only for testing
-  Question getQuestion(String id);
+public interface SubmissionService {
   void pushTask(final Submission submission);
   String popTask();
 

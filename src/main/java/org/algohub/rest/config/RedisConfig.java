@@ -13,13 +13,19 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Configuration
 public class RedisConfig {
-  @Value("${redis.host}")
+  @Value("${spring.redis.host}")
   private String host;
+  @Value("${spring.redis.port}")
+  private int port;
+  @Value("${spring.redis.timeout}")
+  private int timeout;
 
   @Bean
-  public RedisConnectionFactory redisConnectionFactory() {
+  public JedisConnectionFactory redisConnectionFactory() {
     JedisConnectionFactory factory = new JedisConnectionFactory();
     factory.setHostName(host);
+    factory.setPort(port);
+    factory.setTimeout(timeout);
     return factory;
   }
 

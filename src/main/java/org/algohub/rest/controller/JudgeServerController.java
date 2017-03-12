@@ -6,10 +6,12 @@ import org.algohub.rest.pojo.Submission;
 import org.algohub.rest.pojo.SubmissionId;
 import org.algohub.rest.service.SubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -22,6 +24,7 @@ public class JudgeServerController {
 
 
   @RequestMapping(value = "/java/{id}")
+  @ResponseStatus(HttpStatus.ACCEPTED)
   public SubmissionId judgeJava(@PathVariable("id") String id, @RequestBody String userCode) {
     final long submissionId = submissionService.incrementAndGetSubmissionId();
     final Submission submission = new Submission(submissionId, id, LanguageType.JAVA, userCode);
@@ -30,6 +33,7 @@ public class JudgeServerController {
   }
 
   @RequestMapping(value = "/cpp/{id}")
+  @ResponseStatus(HttpStatus.ACCEPTED)
   public SubmissionId judgeCpp(@PathVariable("id") String id, @RequestBody String userCode) {
     final long submissionId = submissionService.incrementAndGetSubmissionId();
     final Submission submission = new Submission(submissionId, id, LanguageType.CPLUSPLUS, userCode);
@@ -38,6 +42,7 @@ public class JudgeServerController {
   }
 
   @RequestMapping(value = "/python/{id}")
+  @ResponseStatus(HttpStatus.ACCEPTED)
   public SubmissionId judgePython(@PathVariable("id") String id, @RequestBody String userCode) {
     final long submissionId = submissionService.incrementAndGetSubmissionId();
     final Submission submission = new Submission(submissionId, id, LanguageType.PYTHON, userCode);
@@ -46,6 +51,7 @@ public class JudgeServerController {
   }
 
   @RequestMapping(value = "/ruby/{id}")
+  @ResponseStatus(HttpStatus.ACCEPTED)
   public SubmissionId judgeRuby(@PathVariable("id") String id, @RequestBody String userCode) {
     final long submissionId = submissionService.incrementAndGetSubmissionId();
     final Submission submission = new Submission(submissionId, id, LanguageType.RUBY, userCode);
@@ -54,6 +60,7 @@ public class JudgeServerController {
   }
 
   @RequestMapping
+  @ResponseStatus(HttpStatus.ACCEPTED)
   public SubmissionId judge(@RequestBody final Answer answer) {
     final long submissionId = submissionService.incrementAndGetSubmissionId();
     final Submission submission = new Submission(submissionId, answer.getId(),

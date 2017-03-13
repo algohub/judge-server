@@ -17,12 +17,12 @@ public class QuestionServiceImpl implements QuestionService {
 
   public void addQuestion(final String id, final String json) {
     final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-    valueOps.set("question:" + id, json);
+    valueOps.set(SubmissionServiceImpl.GLOBAL_KEY_PREIFIX + "question:" + id, json);
   }
 
   public Question getQuestionById(String id) {
     final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-    final String jsonStr = valueOps.get("question:" + id);
+    final String jsonStr = valueOps.get(SubmissionServiceImpl.GLOBAL_KEY_PREIFIX + "question:" + id);
     if (jsonStr == null) {
       return null;
     }

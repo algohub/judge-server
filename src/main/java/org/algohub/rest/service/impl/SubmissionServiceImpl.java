@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
@@ -31,12 +32,10 @@ import java.io.IOException;
 
 @Service
 public class SubmissionServiceImpl implements SubmissionService {
-  private static final String GLOBAL_KEY_PREIFIX = "judge:";
+  public static final String GLOBAL_KEY_PREIFIX = "algohub_judge:";
   private static final String MAX_SUBMISSION_ID_KEY = "max_submission_id";
-  private static final String NEW_TASK_NOTIFICATION_KEY = "task_queue";
   private static final String TASK_QUEUE = "task_queue";
-  private static final String SUBMISSION_REDULT_MAP_KEY = "submission-result-map";
-  private static final String QUESTION_MAP_KEY = "question-map";
+  private static final String SUBMISSION_REDULT_KEY = "submission_result:";
 
   @Autowired
   private StringRedisTemplate redisTemplate;
@@ -45,21 +44,11 @@ public class SubmissionServiceImpl implements SubmissionService {
   private RedisAtomicLong maxSubmissionId;
 
   @Autowired
-  private SubmissionResultMap submissionResultMap;
-
-  @Autowired
   private TaskQueueList taskQueue;
 
   @Bean
   RedisAtomicLong createAtomicLong(RedisConnectionFactory connectionFactory) {
     return new RedisAtomicLong(GLOBAL_KEY_PREIFIX + MAX_SUBMISSION_ID_KEY, connectionFactory);
-  }
-
-  @Bean
-  SubmissionResultMap createSubmissionResultMap(StringRedisTemplate redisTemplate) {
-    final RedisMap<String, String> redisMap = new DefaultRedisMap<>(
-        GLOBAL_KEY_PREIFIX + SUBMISSION_REDULT_MAP_KEY, redisTemplate);
-    return new SubmissionResultMap(redisMap);
   }
 
   @Bean TaskQueueList createTaskQueue(StringRedisTemplate redisTemplate) {
@@ -74,7 +63,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     RedisMessageListenerContainer container = new RedisMessageListenerContainer();
     container.setConnectionFactory(connectionFactory);
     container.addMessageListener(listenerAdapter,
-        new PatternTopic(GLOBAL_KEY_PREIFIX + NEW_TASK_NOTIFICATION_KEY));
+        new PatternTopic(GLOBAL_KEY_PREIFIX + TASK_QUEUE));
 
     return container;
   }
@@ -97,7 +86,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     try {
       final String jsonStr = ObjectMapperInstance.INSTANCE.writeValueAsString(submission);
       taskQueue.getList().offerLast(jsonStr);
-      redisTemplate.convertAndSend(GLOBAL_KEY_PREIFIX + NEW_TASK_NOTIFICATION_KEY,
+      redisTemplate.convertAndSend(GLOBAL_KEY_PREIFIX + TASK_QUEUE,
           String.valueOf(submission.getId()));
       setSubmissionResult(submission.getId(), new JudgeResult(StatusCode.PENDING));
     } catch (JsonProcessingException e) {
@@ -112,14 +101,16 @@ public class SubmissionServiceImpl implements SubmissionService {
   public void setSubmissionResult(long submissionId, final JudgeResult judgeResult) {
     try {
       final String jsonStr = ObjectMapperInstance.INSTANCE.writeValueAsString(judgeResult);
-      submissionResultMap.getMap().put(String.valueOf(submissionId), jsonStr);
+      final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
+      valueOps.set(GLOBAL_KEY_PREIFIX + SUBMISSION_REDULT_KEY + String.valueOf(submissionId), jsonStr);
     } catch (JsonProcessingException e) {
       e.printStackTrace();
     }
   }
 
   public JudgeResult getSubmissionResult(long id) {
-    final String jsonStr = submissionResultMap.getMap().get(String.valueOf(id));
+    final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
+    final String jsonStr = valueOps.get(GLOBAL_KEY_PREIFIX + SUBMISSION_REDULT_KEY + String.valueOf(id));
     try {
       return ObjectMapperInstance.INSTANCE.readValue(jsonStr, JudgeResult.class);
     } catch (IOException e) {
@@ -128,10 +119,8 @@ public class SubmissionServiceImpl implements SubmissionService {
   }
 
   public void clear() {
-    redisTemplate.delete(GLOBAL_KEY_PREIFIX + "max_submission_id");
-    redisTemplate.delete(GLOBAL_KEY_PREIFIX + NEW_TASK_NOTIFICATION_KEY);
-    redisTemplate.delete(GLOBAL_KEY_PREIFIX + QUESTION_MAP_KEY);
-    redisTemplate.delete(GLOBAL_KEY_PREIFIX + SUBMISSION_REDULT_MAP_KEY);
+    redisTemplate.delete(GLOBAL_KEY_PREIFIX + MAX_SUBMISSION_ID_KEY);
+    redisTemplate.delete(GLOBAL_KEY_PREIFIX + TASK_QUEUE);
   }
 
   static class Receiver {

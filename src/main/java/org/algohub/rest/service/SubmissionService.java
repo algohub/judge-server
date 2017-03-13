@@ -1,7 +1,6 @@
 package org.algohub.rest.service;
 
 import org.algohub.engine.pojo.JudgeResult;
-import org.algohub.engine.pojo.Question;
 import org.algohub.rest.pojo.Submission;
 
 

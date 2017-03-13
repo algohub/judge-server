@@ -7,14 +7,11 @@ import org.algohub.engine.judge.StatusCode;
 import org.algohub.engine.pojo.JudgeResult;
 import org.algohub.engine.util.ObjectMapperInstance;
 import org.algohub.rest.pojo.Submission;
-import org.algohub.rest.pojo.SubmissionResultMap;
 import org.algohub.rest.pojo.TaskQueueList;
-import org.algohub.rest.service.QuestionService;
+import org.algohub.rest.service.ProblemService;
 import org.algohub.rest.service.SubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -23,9 +20,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 import org.springframework.data.redis.support.collections.DefaultRedisList;
-import org.springframework.data.redis.support.collections.DefaultRedisMap;
 import org.springframework.data.redis.support.collections.RedisList;
-import org.springframework.data.redis.support.collections.RedisMap;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -130,7 +125,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private SubmissionService submissionService;
 
     @Autowired
-    private QuestionService questionService;
+    private ProblemService problemService;
 
     public void receiveMessage(String message) {
       try {
@@ -139,8 +134,8 @@ public class SubmissionServiceImpl implements SubmissionService {
           final Submission submission = ObjectMapperInstance.INSTANCE.readValue(jsonStr,
               Submission.class);
           submissionService.setSubmissionResult(submission.getId(), new JudgeResult(StatusCode.RUNNING));
-          final JudgeResult judgeResult = judgeEngine.judge(questionService.getQuestionById(
-              submission.getQuestionId()), submission.getCode(), submission.getLanguage());
+          final JudgeResult judgeResult = judgeEngine.judge(problemService.getProblemById(
+              submission.getProblemId()), submission.getCode(), submission.getLanguage());
           submissionService.setSubmissionResult(submission.getId(), judgeResult);
         }
       } catch (IOException e) {

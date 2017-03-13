@@ -1,8 +1,8 @@
 package org.algohub.rest.service.impl;
 
-import org.algohub.engine.pojo.Question;
+import org.algohub.engine.pojo.Problem;
 import org.algohub.engine.util.ObjectMapperInstance;
-import org.algohub.rest.service.QuestionService;
+import org.algohub.rest.service.ProblemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -11,24 +11,24 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Service
-public class QuestionServiceImpl implements QuestionService {
+public class ProblemServiceImpl implements ProblemService {
   @Autowired
   private StringRedisTemplate redisTemplate;
 
-  public void addQuestion(final String id, final String json) {
+  public void addProblem(final String id, final String json) {
     final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-    valueOps.set(SubmissionServiceImpl.GLOBAL_KEY_PREIFIX + "question:" + id, json);
+    valueOps.set(SubmissionServiceImpl.GLOBAL_KEY_PREIFIX + "problem:" + id, json);
   }
 
-  public Question getQuestionById(String id) {
+  public Problem getProblemById(String id) {
     final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-    final String jsonStr = valueOps.get(SubmissionServiceImpl.GLOBAL_KEY_PREIFIX + "question:" + id);
+    final String jsonStr = valueOps.get(SubmissionServiceImpl.GLOBAL_KEY_PREIFIX + "problem:" + id);
     if (jsonStr == null) {
       return null;
     }
 
     try {
-      return ObjectMapperInstance.INSTANCE.readValue(jsonStr, Question.class);
+      return ObjectMapperInstance.INSTANCE.readValue(jsonStr, Problem.class);
     } catch (IOException e) {
       return null;
     }

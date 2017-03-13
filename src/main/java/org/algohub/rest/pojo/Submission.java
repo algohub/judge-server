@@ -8,16 +8,16 @@ import org.algohub.engine.type.LanguageType;
 
 public class Submission {
   private long id;
-  @JsonProperty("question_id") private String questionId;
+  @JsonProperty("problem_id") private String problemId;
   private LanguageType language;
   private String code;
 
   @JsonCreator public Submission(@JsonProperty("id") long id,
-      @JsonProperty("question_id") String questionId,
+      @JsonProperty("problem_id") String problemId,
       @JsonProperty("language") LanguageType language,
       @JsonProperty("code") String code) {
     this.id = id;
-    this.questionId = questionId;
+    this.problemId = problemId;
     this.language = language;
     this.code = code;
   }
@@ -30,12 +30,12 @@ public class Submission {
     this.id = id;
   }
 
-  public String getQuestionId() {
-    return questionId;
+  public String getProblemId() {
+    return problemId;
   }
 
-  public void setQuestionId(String questionId) {
-    this.questionId = questionId;
+  public void setProblemId(String problemId) {
+    this.problemId = problemId;
   }
 
   public LanguageType getLanguage() {

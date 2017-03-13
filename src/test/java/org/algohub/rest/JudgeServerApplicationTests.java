@@ -5,12 +5,12 @@ import com.google.common.collect.ImmutableMap;
 import org.algohub.engine.JudgeEngine;
 import org.algohub.engine.judge.StatusCode;
 import org.algohub.engine.pojo.JudgeResult;
-import org.algohub.engine.pojo.Question;
+import org.algohub.engine.pojo.Problem;
 import org.algohub.engine.type.LanguageType;
 import org.algohub.engine.util.ObjectMapperInstance;
 import org.algohub.rest.pojo.Answer;
 import org.algohub.rest.pojo.SubmissionId;
-import org.algohub.rest.service.QuestionService;
+import org.algohub.rest.service.ProblemService;
 import org.algohub.rest.service.SubmissionService;
 import org.junit.After;
 import org.junit.Assert;
@@ -61,7 +61,7 @@ public class JudgeServerApplicationTests {
   private HttpMessageConverter mappingJackson2HttpMessageConverter;
 
   @Autowired
-  private QuestionService questionService;
+  private ProblemService problemService;
   @Autowired
   private SubmissionService submissionService;
 
@@ -88,7 +88,7 @@ public class JudgeServerApplicationTests {
   @Before
   public void setup() throws Exception {
     this.mockMvc = webAppContextSetup(webApplicationContext).build();
-    loadQuestions();
+    loadProblems();
   }
 
   @After
@@ -205,15 +205,15 @@ public class JudgeServerApplicationTests {
     }
   }
 
-  private void loadQuestions() throws IOException {
-    final File folder = new File("src/test/resources/questions");
+  private void loadProblems() throws IOException {
+    final File folder = new File("src/test/resources/problems");
 
     for (final File fileEntry : folder.listFiles()) {
       if (fileEntry.isFile() && fileEntry.getName().endsWith(".json")) {
         final String jsonStr = new String(Files.readAllBytes(fileEntry.toPath()),
             StandardCharsets.UTF_8);
-        final Question question = ObjectMapperInstance.INSTANCE.readValue(jsonStr, Question.class);
-        questionService.addQuestion(question.getId(), jsonStr);
+        final Problem problem = ObjectMapperInstance.INSTANCE.readValue(jsonStr, Problem.class);
+        problemService.addProblem(problem.getId(), jsonStr);
       }
     }
   }

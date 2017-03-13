@@ -7,7 +7,7 @@ import org.algohub.engine.judge.StatusCode;
 import org.algohub.engine.pojo.JudgeResult;
 import org.algohub.engine.util.ObjectMapperInstance;
 import org.algohub.rest.pojo.Submission;
-import org.algohub.rest.pojo.TaskQueueList;
+import org.algohub.rest.bo.TaskQueueList;
 import org.algohub.rest.service.ProblemService;
 import org.algohub.rest.service.SubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;

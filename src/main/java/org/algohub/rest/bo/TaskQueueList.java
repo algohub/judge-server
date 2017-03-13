@@ -1,4 +1,4 @@
-package org.algohub.rest.pojo;
+package org.algohub.rest.bo;
 
 import org.springframework.data.redis.support.collections.RedisList;
 

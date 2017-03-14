@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(method = RequestMethod.GET, value = "/submission")
+@RequestMapping(method = RequestMethod.GET, value = "/submissions")
 public class SubmissionController {
 
   @Autowired
   private SubmissionService submissionService;
 
-  @RequestMapping(value = "/check/{id}")
+  @RequestMapping(value = "/{id}")
   public JudgeResult check(@PathVariable("id") long id) {
     return submissionService.getSubmissionResult(id);
   }

@@ -8,7 +8,7 @@ import org.algohub.engine.pojo.JudgeResult;
 import org.algohub.engine.pojo.Problem;
 import org.algohub.engine.type.LanguageType;
 import org.algohub.engine.util.ObjectMapperInstance;
-import org.algohub.rest.pojo.Answer;
+import org.algohub.rest.pojo.Submission;
 import org.algohub.rest.pojo.SubmissionId;
 import org.algohub.rest.service.ProblemService;
 import org.algohub.rest.service.SubmissionService;
@@ -96,27 +96,20 @@ public class JudgeServerApplicationTests {
     submissionService.clear();
   }
 
-  @Test public void judgeTest() {
-    batchJudge(LanguageType.JAVA, this::judgeOne);
-    batchJudge(LanguageType.CPLUSPLUS, this::judgeOne);
-    batchJudge(LanguageType.PYTHON, this::judgeOne);
-    batchJudge(LanguageType.RUBY, this::judgeOne);
-  }
-
   @Test public void javaJudgeTest() {
-    batchJudge(LanguageType.JAVA, this::judgeOneLanguage);
+    judgeMulti(LanguageType.JAVA, this::judgeOne);
   }
 
   @Test public void cppJudgeTest() {
-    batchJudge(LanguageType.CPLUSPLUS, this::judgeOneLanguage);
+    judgeMulti(LanguageType.CPLUSPLUS, this::judgeOne);
   }
 
   @Test public void pythonJudgeTest() {
-    batchJudge(LanguageType.PYTHON, this::judgeOneLanguage);
+    judgeMulti(LanguageType.PYTHON, this::judgeOne);
   }
 
   @Test public void rubyJudgeTest() {
-    batchJudge(LanguageType.RUBY, this::judgeOneLanguage);
+    judgeMulti(LanguageType.RUBY, this::judgeOne);
   }
 
   private String json(Object o) throws IOException {
@@ -131,7 +124,7 @@ public class JudgeServerApplicationTests {
     void apply(String id, String userCode, LanguageType languageType);
   }
 
-  private static void batchJudge(final LanguageType languageType, JudgeOneFunction judgeOne) {
+  private static void judgeMulti(final LanguageType languageType, JudgeOneFunction judgeOne) {
     final File rootDir = new File("src/test/resources/solutions/");
     final Pattern pattern = Pattern.compile("\\w+\\" + LANGUAGE_TO_EXTENSION.get(languageType));
 
@@ -152,11 +145,11 @@ public class JudgeServerApplicationTests {
     }
   }
 
-  private void judgeOne(final String id, final String userCode,
+  private void judgeOne(final String problemId, final String userCode,
       LanguageType languageType) {
     try {
       String response = mockMvc.perform(
-          post("/judge").content(this.json(new Answer(id, languageType, userCode)))
+          post("/problems/" + problemId + "/judge").content(this.json(new Submission(languageType, userCode)))
               .contentType(contentType)).andReturn().getResponse().getContentAsString();
       final SubmissionId submissionId = ObjectMapperInstance.INSTANCE.readValue(response,
           SubmissionId.class);
@@ -164,34 +157,7 @@ public class JudgeServerApplicationTests {
       JudgeResult judgeResult = new JudgeResult(StatusCode.PENDING);
       for (int i = 0; i < 10; ++i) {
         Thread.sleep(1000);
-        response = mockMvc.perform(get("/submission/check/" + submissionId.getSubmissionId())).andReturn().getResponse()
-            .getContentAsString();
-        judgeResult = ObjectMapperInstance.INSTANCE.readValue(response, JudgeResult.class);
-        if (judgeResult.getStatusCode() == StatusCode.ACCEPTED.toInt()) break;
-      }
-      if (judgeResult.getStatusCode() != StatusCode.ACCEPTED.toInt()) {
-        System.err.println(judgeResult.getErrorMessage());
-      }
-      assertEquals(StatusCode.ACCEPTED.toInt(), judgeResult.getStatusCode());
-    } catch (Exception ex) {
-      fail(ex.getMessage());
-    }
-  }
-
-  private void judgeOneLanguage(final String id, final String userCode,
-      LanguageType languageType) {
-    try {
-      String response = mockMvc.perform(
-          post("/judge/" + languageType.toValue() + '/' + id)
-              .content(userCode)
-              .contentType(contentTypeText)).andReturn().getResponse().getContentAsString();
-      final SubmissionId submissionId = ObjectMapperInstance.INSTANCE.readValue(response,
-          SubmissionId.class);
-
-      JudgeResult judgeResult = new JudgeResult(StatusCode.PENDING);
-      for (int i = 0; i < 10; ++i) {
-        Thread.sleep(1000);
-        response = mockMvc.perform(get("/submission/check/" + submissionId.getSubmissionId())).andReturn().getResponse()
+        response = mockMvc.perform(get("/submissions/" + submissionId.getSubmissionId())).andReturn().getResponse()
             .getContentAsString();
         judgeResult = ObjectMapperInstance.INSTANCE.readValue(response, JudgeResult.class);
         if (judgeResult.getStatusCode() == StatusCode.ACCEPTED.toInt()) break;

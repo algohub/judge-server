@@ -22,6 +22,11 @@ public class Submission {
     this.code = code;
   }
 
+  public Submission(LanguageType language, String code) {
+    this.language = language;
+    this.code = code;
+  }
+
   public long getId() {
     return id;
   }

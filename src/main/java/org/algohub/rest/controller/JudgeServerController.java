@@ -1,7 +1,5 @@
 package org.algohub.rest.controller;
 
-import org.algohub.engine.type.LanguageType;
-import org.algohub.rest.pojo.Answer;
 import org.algohub.rest.pojo.Submission;
 import org.algohub.rest.pojo.SubmissionId;
 import org.algohub.rest.service.SubmissionService;
@@ -16,55 +14,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping(method = RequestMethod.POST, value = "/judge")
+@RequestMapping(method = RequestMethod.POST, value = "/problems")
 public class JudgeServerController {
 
   @Autowired
   private SubmissionService submissionService;
 
-
-  @RequestMapping(value = "/java/{id}")
+  @RequestMapping(value = "/{id}/judge")
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public SubmissionId judgeJava(@PathVariable("id") String id, @RequestBody String userCode) {
+  public SubmissionId judge(@PathVariable("id") String problemId, @RequestBody final Submission submission) {
     final long submissionId = submissionService.incrementAndGetSubmissionId();
-    final Submission submission = new Submission(submissionId, id, LanguageType.JAVA, userCode);
-    submissionService.pushTask(submission);
-    return new SubmissionId(submissionId);
-  }
-
-  @RequestMapping(value = "/cpp/{id}")
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public SubmissionId judgeCpp(@PathVariable("id") String id, @RequestBody String userCode) {
-    final long submissionId = submissionService.incrementAndGetSubmissionId();
-    final Submission submission = new Submission(submissionId, id, LanguageType.CPLUSPLUS, userCode);
-    submissionService.pushTask(submission);
-    return new SubmissionId(submissionId);
-  }
-
-  @RequestMapping(value = "/python/{id}")
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public SubmissionId judgePython(@PathVariable("id") String id, @RequestBody String userCode) {
-    final long submissionId = submissionService.incrementAndGetSubmissionId();
-    final Submission submission = new Submission(submissionId, id, LanguageType.PYTHON, userCode);
-    submissionService.pushTask(submission);
-    return new SubmissionId(submissionId);
-  }
-
-  @RequestMapping(value = "/ruby/{id}")
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public SubmissionId judgeRuby(@PathVariable("id") String id, @RequestBody String userCode) {
-    final long submissionId = submissionService.incrementAndGetSubmissionId();
-    final Submission submission = new Submission(submissionId, id, LanguageType.RUBY, userCode);
-    submissionService.pushTask(submission);
-    return new SubmissionId(submissionId);
-  }
-
-  @RequestMapping
-  @ResponseStatus(HttpStatus.ACCEPTED)
-  public SubmissionId judge(@RequestBody final Answer answer) {
-    final long submissionId = submissionService.incrementAndGetSubmissionId();
-    final Submission submission = new Submission(submissionId, answer.getId(),
-        answer.getLanguage(), answer.getCode());
+    submission.setId(submissionId);
+    submission.setProblemId(problemId);
     submissionService.pushTask(submission);
     return new SubmissionId(submissionId);
   }

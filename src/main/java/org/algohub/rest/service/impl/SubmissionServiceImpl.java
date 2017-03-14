@@ -24,6 +24,7 @@ import org.springframework.data.redis.support.collections.RedisList;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class SubmissionServiceImpl implements SubmissionService {
@@ -97,7 +98,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     try {
       final String jsonStr = ObjectMapperInstance.INSTANCE.writeValueAsString(judgeResult);
       final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-      valueOps.set(GLOBAL_KEY_PREIFIX + SUBMISSION_REDULT_KEY + String.valueOf(submissionId), jsonStr);
+      valueOps.set(GLOBAL_KEY_PREIFIX + SUBMISSION_REDULT_KEY + String.valueOf(submissionId), jsonStr, 15, TimeUnit.MINUTES);
     } catch (JsonProcessingException e) {
       e.printStackTrace();
     }

@@ -115,7 +115,7 @@ public class SubmissionServiceImpl implements SubmissionService {
   }
 
   public void clear() {
-    redisTemplate.delete(GLOBAL_KEY_PREIFIX + MAX_SUBMISSION_ID_KEY);
+    // redisTemplate.delete(GLOBAL_KEY_PREIFIX + MAX_SUBMISSION_ID_KEY);
     redisTemplate.delete(GLOBAL_KEY_PREIFIX + TASK_QUEUE);
   }
 

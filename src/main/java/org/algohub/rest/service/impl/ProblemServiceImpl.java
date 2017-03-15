@@ -15,9 +15,14 @@ public class ProblemServiceImpl implements ProblemService {
   @Autowired
   private StringRedisTemplate redisTemplate;
 
-  public void addProblem(final String id, final String json) {
-    final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-    valueOps.set(SubmissionServiceImpl.GLOBAL_KEY_PREIFIX + "problem:" + id, json);
+  public void addProblem(String json) {
+    try {
+       final Problem problem = ObjectMapperInstance.INSTANCE.readValue(json, Problem.class);
+       final ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
+       valueOps.set(SubmissionServiceImpl.GLOBAL_KEY_PREIFIX + "problem:" + problem.getId(), json);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public Problem getProblemById(String id) {
@@ -30,6 +35,7 @@ public class ProblemServiceImpl implements ProblemService {
     try {
       return ObjectMapperInstance.INSTANCE.readValue(jsonStr, Problem.class);
     } catch (IOException e) {
+      e.printStackTrace();
       return null;
     }
   }

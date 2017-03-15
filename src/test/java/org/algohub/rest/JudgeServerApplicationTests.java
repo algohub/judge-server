@@ -178,8 +178,12 @@ public class JudgeServerApplicationTests {
       if (fileEntry.isFile() && fileEntry.getName().endsWith(".json")) {
         final String jsonStr = new String(Files.readAllBytes(fileEntry.toPath()),
             StandardCharsets.UTF_8);
-        final Problem problem = ObjectMapperInstance.INSTANCE.readValue(jsonStr, Problem.class);
-        problemService.addProblem(problem.getId(), jsonStr);
+        try {
+          mockMvc.perform(post("/problems").content(jsonStr).contentType(contentType))
+                  .andReturn().getResponse().getContentAsString();
+        } catch (Exception ex) {
+          fail(ex.getMessage());
+        }
       }
     }
   }

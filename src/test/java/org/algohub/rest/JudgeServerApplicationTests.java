@@ -2,8 +2,10 @@ package org.algohub.rest;
 
 import com.google.common.collect.ImmutableMap;
 
+import java.nio.file.Paths;
 import org.algohub.engine.JudgeEngine;
 import org.algohub.engine.judge.StatusCode;
+import org.algohub.engine.pojo.Code;
 import org.algohub.engine.pojo.JudgeResult;
 import org.algohub.engine.pojo.Problem;
 import org.algohub.engine.type.LanguageType;
@@ -112,6 +114,13 @@ public class JudgeServerApplicationTests {
     judgeMulti(LanguageType.RUBY, this::judgeOne);
   }
 
+  @Test public void judgeDirectly() {
+    judgeDirectly(LanguageType.JAVA);
+    judgeDirectly(LanguageType.CPLUSPLUS);
+    judgeDirectly(LanguageType.PYTHON);
+    judgeDirectly(LanguageType.RUBY);
+  }
+
   private String json(Object o) throws IOException {
     MockHttpOutputMessage mockHttpOutputMessage = new MockHttpOutputMessage();
     this.mappingJackson2HttpMessageConverter.write(
@@ -167,6 +176,46 @@ public class JudgeServerApplicationTests {
       }
       assertEquals(StatusCode.ACCEPTED.toInt(), judgeResult.getStatusCode());
     } catch (Exception ex) {
+      fail(ex.getMessage());
+    }
+  }
+
+  private void judgeDirectly(final LanguageType languageType) {
+    final File solutionsDir = new File("src/test/resources/solutions/");
+    final File problemDir = new File("src/test/resources/problems/");
+    final Pattern pattern = Pattern.compile("\\w+\\" + LANGUAGE_TO_EXTENSION.get(languageType));
+
+    try {
+      for (final File solutionDir : solutionsDir.listFiles()) {
+        final String problemJson = new String(java.nio.file.Files.readAllBytes(
+            Paths.get(problemDir.getAbsolutePath(), solutionDir.getName() + ".json")),
+            StandardCharsets.UTF_8);
+        for (final File solutionFile : solutionDir.listFiles()) {
+          final Matcher matcher = pattern.matcher(solutionFile.getName());
+          if (!matcher.matches()) continue;
+
+          final String userCode =
+              new String(java.nio.file.Files.readAllBytes(solutionFile.toPath()), StandardCharsets.UTF_8);
+          final String jsonCode = ObjectMapperInstance.INSTANCE.writeValueAsString(new Code(languageType, userCode));
+          final int lastCloseBrace = problemJson.lastIndexOf('}');
+          final String problemJsonNew = problemJson.substring(0, lastCloseBrace) + "," +
+              "\"solution\":" + jsonCode + "}";
+
+          try {
+            String response = mockMvc.perform(post("/judge").content(problemJsonNew).
+                contentType(contentType)).andReturn().getResponse().getContentAsString();
+            final JudgeResult judgeResult = ObjectMapperInstance.INSTANCE.readValue(response,
+                JudgeResult.class);
+            if (judgeResult.getStatusCode() != StatusCode.ACCEPTED.toInt()) {
+              System.err.println(judgeResult.getErrorMessage());
+            }
+            assertEquals(StatusCode.ACCEPTED.toInt(), judgeResult.getStatusCode());
+          } catch (Exception ex) {
+            fail(ex.getMessage());
+          }
+        }
+      }
+    } catch (IOException ex) {
       fail(ex.getMessage());
     }
   }

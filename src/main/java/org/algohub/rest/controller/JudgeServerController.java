@@ -1,5 +1,8 @@
 package org.algohub.rest.controller;
 
+import org.algohub.engine.JudgeEngine;
+import org.algohub.engine.pojo.JudgeResult;
+import org.algohub.engine.pojo.Problem;
 import org.algohub.rest.pojo.Submission;
 import org.algohub.rest.pojo.SubmissionId;
 import org.algohub.rest.service.SubmissionService;
@@ -14,13 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping(method = RequestMethod.POST, value = "/problems")
 public class JudgeServerController {
-
+  private final JudgeEngine judgeEngine = new JudgeEngine();
   @Autowired
   private SubmissionService submissionService;
 
-  @RequestMapping(value = "/{id}/judge")
+  @RequestMapping(method = RequestMethod.POST, value = "/problems/{id}/judge")
   @ResponseStatus(HttpStatus.ACCEPTED)
   public SubmissionId judge(@PathVariable("id") String problemId, @RequestBody final Submission submission) {
     final long submissionId = submissionService.incrementAndGetSubmissionId();
@@ -28,5 +30,11 @@ public class JudgeServerController {
     submission.setProblemId(problemId);
     submissionService.pushTask(submission);
     return new SubmissionId(submissionId);
+  }
+
+  @RequestMapping(method = RequestMethod.POST, value = "/judge")
+  public JudgeResult judge(@RequestBody final Problem problem) {
+    return judgeEngine.judge(problem, problem.getSolution().getCode(),
+        problem.getSolution().getLanguage());
   }
 }

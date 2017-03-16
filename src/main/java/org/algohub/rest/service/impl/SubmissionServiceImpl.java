@@ -3,7 +3,7 @@ package org.algohub.rest.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.algohub.engine.JudgeEngine;
-import org.algohub.engine.judge.StatusCode;
+import org.algohub.engine.bo.StatusCode;
 import org.algohub.engine.pojo.JudgeResult;
 import org.algohub.engine.util.ObjectMapperInstance;
 import org.algohub.rest.pojo.Submission;

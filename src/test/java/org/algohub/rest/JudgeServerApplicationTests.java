@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 
 import java.nio.file.Paths;
 import org.algohub.engine.JudgeEngine;
-import org.algohub.engine.judge.StatusCode;
+import org.algohub.engine.bo.StatusCode;
 import org.algohub.engine.pojo.Code;
 import org.algohub.engine.pojo.JudgeResult;
 import org.algohub.engine.pojo.Problem;
@@ -169,12 +169,12 @@ public class JudgeServerApplicationTests {
         response = mockMvc.perform(get("/submissions/" + submissionId.getSubmissionId())).andReturn().getResponse()
             .getContentAsString();
         judgeResult = ObjectMapperInstance.INSTANCE.readValue(response, JudgeResult.class);
-        if (judgeResult.getStatusCode() == StatusCode.ACCEPTED.toInt()) break;
+        if (judgeResult.getStatusCode() == StatusCode.ACCEPTED) break;
       }
-      if (judgeResult.getStatusCode() != StatusCode.ACCEPTED.toInt()) {
+      if (judgeResult.getStatusCode() != StatusCode.ACCEPTED) {
         System.err.println(judgeResult.getErrorMessage());
       }
-      assertEquals(StatusCode.ACCEPTED.toInt(), judgeResult.getStatusCode());
+      assertEquals(StatusCode.ACCEPTED, judgeResult.getStatusCode());
     } catch (Exception ex) {
       fail(ex.getMessage());
     }
@@ -206,10 +206,10 @@ public class JudgeServerApplicationTests {
                 contentType(contentType)).andReturn().getResponse().getContentAsString();
             final JudgeResult judgeResult = ObjectMapperInstance.INSTANCE.readValue(response,
                 JudgeResult.class);
-            if (judgeResult.getStatusCode() != StatusCode.ACCEPTED.toInt()) {
+            if (judgeResult.getStatusCode() != StatusCode.ACCEPTED) {
               System.err.println(judgeResult.getErrorMessage());
             }
-            assertEquals(StatusCode.ACCEPTED.toInt(), judgeResult.getStatusCode());
+            assertEquals(StatusCode.ACCEPTED, judgeResult.getStatusCode());
           } catch (Exception ex) {
             fail(ex.getMessage());
           }

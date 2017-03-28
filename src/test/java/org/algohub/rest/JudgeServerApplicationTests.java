@@ -1,13 +1,13 @@
 package org.algohub.rest;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.ImmutableMap;
 
 import java.nio.file.Paths;
 import org.algohub.engine.JudgeEngine;
 import org.algohub.engine.bo.StatusCode;
-import org.algohub.engine.pojo.Code;
 import org.algohub.engine.pojo.JudgeResult;
-import org.algohub.engine.pojo.Problem;
 import org.algohub.engine.type.LanguageType;
 import org.algohub.engine.util.ObjectMapperInstance;
 import org.algohub.rest.pojo.Submission;
@@ -114,11 +114,11 @@ public class JudgeServerApplicationTests {
     judgeMulti(LanguageType.RUBY, this::judgeOne);
   }
 
-  @Test public void judgeDirectly() {
-    judgeDirectly(LanguageType.JAVA);
-    judgeDirectly(LanguageType.CPLUSPLUS);
-    judgeDirectly(LanguageType.PYTHON);
-    judgeDirectly(LanguageType.RUBY);
+  @Test public void validate() {
+    validate(LanguageType.JAVA);
+    validate(LanguageType.CPLUSPLUS);
+    validate(LanguageType.PYTHON);
+    validate(LanguageType.RUBY);
   }
 
   private String json(Object o) throws IOException {
@@ -180,7 +180,7 @@ public class JudgeServerApplicationTests {
     }
   }
 
-  private void judgeDirectly(final LanguageType languageType) {
+  private void validate(final LanguageType languageType) {
     final File solutionsDir = new File("src/test/resources/solutions/");
     final File problemDir = new File("src/test/resources/problems/");
     final Pattern pattern = Pattern.compile("\\w+\\" + LANGUAGE_TO_EXTENSION.get(languageType));
@@ -194,15 +194,15 @@ public class JudgeServerApplicationTests {
           final Matcher matcher = pattern.matcher(solutionFile.getName());
           if (!matcher.matches()) continue;
 
+          final ObjectNode submission = ObjectMapperInstance.INSTANCE.createObjectNode();
+          submission.set("problem", ObjectMapperInstance.INSTANCE.readTree(problemJson));
+          submission.set("lang", TextNode.valueOf(languageType.toString()));
           final String userCode =
               new String(java.nio.file.Files.readAllBytes(solutionFile.toPath()), StandardCharsets.UTF_8);
-          final String jsonCode = ObjectMapperInstance.INSTANCE.writeValueAsString(new Code(languageType, userCode));
-          final int lastCloseBrace = problemJson.lastIndexOf('}');
-          final String problemJsonNew = problemJson.substring(0, lastCloseBrace) + "," +
-              "\"solution\":" + jsonCode + "}";
+          submission.set("code", TextNode.valueOf(userCode));
 
           try {
-            String response = mockMvc.perform(post("/judge").content(problemJsonNew).
+            String response = mockMvc.perform(post("/validate").content(submission.toString()).
                 contentType(contentType)).andReturn().getResponse().getContentAsString();
             final JudgeResult judgeResult = ObjectMapperInstance.INSTANCE.readValue(response,
                 JudgeResult.class);

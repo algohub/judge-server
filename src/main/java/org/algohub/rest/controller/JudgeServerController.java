@@ -3,6 +3,7 @@ package org.algohub.rest.controller;
 import org.algohub.engine.JudgeEngine;
 import org.algohub.engine.pojo.JudgeResult;
 import org.algohub.engine.pojo.Problem;
+import org.algohub.rest.bo.DirectSubmission;
 import org.algohub.rest.pojo.Submission;
 import org.algohub.rest.pojo.SubmissionId;
 import org.algohub.rest.service.SubmissionService;
@@ -32,9 +33,9 @@ public class JudgeServerController {
     return new SubmissionId(submissionId);
   }
 
-  @RequestMapping(method = RequestMethod.POST, value = "/judge")
-  public JudgeResult judge(@RequestBody final Problem problem) {
-    return judgeEngine.judge(problem, problem.getSolution().getCode(),
-        problem.getSolution().getLanguage());
+  @RequestMapping(method = RequestMethod.POST, value = "/validate")
+  public JudgeResult judge(@RequestBody final DirectSubmission submission) {
+    return judgeEngine.judge(submission.getProblem(), submission.getCode(),
+        submission.getLang());
   }
 }

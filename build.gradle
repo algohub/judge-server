@@ -31,7 +31,7 @@ repositories {
 dependencies {
     compile('org.springframework.boot:spring-boot-starter-data-redis')
     compile('org.springframework.boot:spring-boot-starter-web')
-    compile('org.algohub.engine:judge-engine:1.0.0-SNAPSHOT')
+    compile('org.algohub.engine:judge-engine:1.0.1-SNAPSHOT')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('com.jayway.jsonpath:json-path-assert:2.2.0')
 }

@@ -28,6 +28,7 @@ import org.springframework.mock.http.MockHttpOutputMessage;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.File;
@@ -43,7 +44,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = JudgeServerApplication.class)
@@ -58,8 +59,6 @@ public class JudgeServerApplicationTests {
       MediaType.TEXT_PLAIN.getSubtype(),
       Charset.forName("utf8"));
 
-  private MockMvc mockMvc;
-
   private HttpMessageConverter mappingJackson2HttpMessageConverter;
 
   @Autowired
@@ -69,6 +68,7 @@ public class JudgeServerApplicationTests {
 
   @Autowired
   private WebApplicationContext webApplicationContext;
+  private MockMvc mockMvc;
 
   private static final ImmutableMap<LanguageType, String> LANGUAGE_TO_EXTENSION =
       ImmutableMap.<LanguageType, String>builder().put(LanguageType.JAVA, ".java")
@@ -88,8 +88,8 @@ public class JudgeServerApplicationTests {
   }
 
   @Before
-  public void setup() throws Exception {
-    this.mockMvc = webAppContextSetup(webApplicationContext).build();
+  public void setupMockMvc() throws Exception {
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
     loadProblems();
   }
 

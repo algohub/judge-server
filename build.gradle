@@ -32,6 +32,5 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
     compile('org.algohub.engine:judge-engine:1.0.1-SNAPSHOT')
     testCompile('org.springframework.boot:spring-boot-starter-test')
-    testCompile('com.jayway.jsonpath:json-path')
 }
 
